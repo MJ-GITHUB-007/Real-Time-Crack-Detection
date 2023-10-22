@@ -2,9 +2,7 @@ from warnings import filterwarnings
 filterwarnings(action='ignore')
 import pretty_errors
 
-import numpy as np
 import matplotlib.pyplot as plt
-import cv2
 import os
 
 import tensorflow as tf
@@ -81,7 +79,7 @@ class Model():
             layers.Activation(activation=nn.relu),
             layers.MaxPooling1D(pool_size=(4,), strides=4),
 
-            layers.Bidirectional(layers.LSTM(units=128)),
+            layers.LSTM(units=128),
             layers.Dense(units=128, activation=nn.sigmoid),
             layers.Dense(units=1, activation=nn.sigmoid)
         ])
@@ -98,10 +96,6 @@ class Model():
         train_datagen = ImageDataGenerator(
             1./255,
             rotation_range=30,
-            width_shift_range=0.1,
-            height_shift_range=0.1,
-            shear_range=0.1,
-            zoom_range=0.1,
             horizontal_flip=True,
             vertical_flip=True,
             fill_mode='nearest'
@@ -111,18 +105,18 @@ class Model():
         )
 
         self.train_data_generator = train_datagen.flow_from_directory(
-            directory=os.path.join(curr_path, 'data', 'train'),
+            directory=os.path.join(curr_path, 'small_data', 'train'),
             target_size=(227, 227),
             color_mode='rgb',
             class_mode='binary',
-            batch_size=4
+            batch_size=32
         )
         self.val_data_generator = val_datagen.flow_from_directory(
-            directory=os.path.join(curr_path, 'data', 'validation'),
+            directory=os.path.join(curr_path, 'small_data', 'validation'),
             target_size=(227, 227),
             color_mode='rgb',
             class_mode='binary',
-            batch_size=1
+            batch_size=8
         )
 
         self.train_history = self.model.fit(self.train_data_generator, validation_data=self.val_data_generator, callbacks=[self.acc_callback, self.early_stop_callback], epochs=num_epochs)
@@ -148,5 +142,5 @@ class Model():
 
 if __name__ == '__main__':
     model = Model()
-    model.train(num_epochs=1)
+    model.train(num_epochs=4)
     model.plot_train()

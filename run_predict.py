@@ -3,24 +3,24 @@ filterwarnings(action='ignore')
 import pretty_errors
 
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
-from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
 
+from fft_conv1d_lstm.keras_model_1d import FFTLayer
+
 curr_path = os.getcwd()
 
-class Test():
-    def __init__(self, model_path=os.path.join(curr_path, 'models/conv2D_model.keras')) -> None:
-        self.model = load_model(model_path)
-        self.data_path = os.path.join(curr_path, 'data', 'test')
-        self.actual, self.prediction = None, None
-
-        self.report = None
-        self.confmat = None
-        self.display = None
+class Prediction():
+    def __init__(self, model_name: str = None, image_path: os.path.normpath = None) -> None:
+        model_path=os.path.join(curr_path, 'models', model_name)
+        
+        if model_name == 'conv1D_lstm_model.keras':
+            self.model = load_model(model_path, custom_objects={'FFTLayer': FFTLayer})
+        elif model_name == 'conv2D_model.keras':
+            self.model = load_model(model_path)
     
     def __read_predictions(self, predictions):
         return_predictions = []
@@ -72,6 +72,29 @@ class Test():
         plt.show()
 
 if __name__ == '__main__':
-    test = Test()
+    image_path = input(f'Input absolute path of image to predict :\n')
+    path = os.path.normpath(image_path)
+
+    print('\n1: Conv2D model')
+    print('2: Conv1D_LSTM model')
+    prompt = input("Which model to use : ")
+
+    try:
+        prompt = int(prompt)
+    except:
+        raise Exception("Input number 1 or 2")
+
+    curr_path = os.getcwd()
+
+    if prompt == 1:
+        print(f"Running test Conv2D model\n")
+        model_name = 'conv2D_model.keras'
+    elif prompt == 2:
+        print(f"Running test Conv1D_LSTM model\n")
+        model_name = 'conv1D_lstm_model.keras'
+    else:
+        raise Exception("Input number 1 or 2")
+
+    test = Prediction(model_name=model_name, image_path=image_path)
     test.do_test()
     test.show_eval()
