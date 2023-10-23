@@ -1,12 +1,16 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
+
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from torchvision import datasets, transforms
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+import numpy as np
 import pretty_errors
-import os
 
 class Conv2d(nn.Module):
     def __init__(self):
@@ -106,8 +110,8 @@ class Train():
             transforms.ToTensor(),
         ])
 
-        self.train_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'small_data', 'train'), transform=train_transform)
-        self.val_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'small_data', 'validation'), transform=val_transform)
+        self.train_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data', 'train'), transform=train_transform)
+        self.val_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data', 'validation'), transform=val_transform)
 
         print(f"\nFound {len(self.train_dataset)} images for training")
         print(f"Found {len(self.val_dataset)} images for validating")
@@ -272,6 +276,97 @@ class Train():
         if self.display:
             plt.show()
 
+class Test():
+    def __init__(self, batch_size=8) -> None:
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.curr_path = os.getcwd()
+
+        test_transform = transforms.Compose([
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),
+        ])
+
+        self.test_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data', 'test'), transform=test_transform)
+
+        print(f"\nFound {len(self.test_dataset)} images for testing")
+
+        if torch.cuda.is_available():
+            print(f"Using GPU : {torch.cuda.get_device_name(0)}")
+        else:
+            print(f"No GPU available, using CPU.")
+
+        # Move dataset to the device
+        self.test_loader = DataLoader(self.test_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
+
+        # Define your PyTorch model (make sure it's designed to run on the specified device)
+        self.model = Conv2d().to(self.device)
+        try:
+            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth')))
+        except:
+            raise Exception(f"Model conv2d_model failed to load")
+
+        self.criterion = nn.BCELoss()
+
+    def test(self, con_matrix=True) -> None:
+
+        print(f"\nEvaluating conv2d_model model...\n")
+
+        # Use tqdm for progress bar during testing
+        with torch.no_grad():
+            all_labels = []
+            all_predictions = []
+
+            with tqdm(total=len(self.test_loader), bar_format='Evaluation '+'|{bar:30}{r_bar}', unit=' batch(s)') as pbar:
+                total_loss = 0.0
+                correct_predictions = 0
+                total_samples = 0
+
+                for inputs, labels in self.test_loader:
+                    inputs, labels = inputs.to(self.device), labels.float().to(self.device)
+                    labels = labels.unsqueeze(-1)
+
+                    # Forward pass
+                    outputs = self.model(inputs)
+                    loss = self.criterion(outputs, labels)
+
+                    # Update metrics
+                    total_loss += loss.item()
+                    predicted = (outputs.data > 0.5).float()
+                    total_samples += labels.size(0)
+                    correct_predictions += (predicted == labels).sum().item()
+
+                    # Collect labels and predictions for later evaluation
+                    all_labels.extend(labels.cpu().numpy())
+                    all_predictions.extend(predicted.cpu().numpy())
+
+                    # Update progress bar
+                    avg_loss = total_loss / total_samples
+                    accuracy = correct_predictions / total_samples
+                    pbar.set_postfix({'loss': avg_loss, 'accuracy': accuracy})
+                    pbar.update(1)
+
+                pbar.close()
+
+            # Convert lists to numpy arrays
+            all_labels = np.array(all_labels)
+            all_predictions = np.array(all_predictions)
+
+        print(f'\nEvaluation complete')
+
+        # Generate and print classification report and confusion matrix
+        print("\nClassification Report:")
+        print(classification_report(all_labels, all_predictions, target_names=['Negative', 'Positive']))
+
+        if con_matrix:
+            con_mat = confusion_matrix(all_labels, all_predictions)
+            display = ConfusionMatrixDisplay(confusion_matrix=con_mat, display_labels=['Negative', 'Positive'])
+            display.plot()
+            plt.title('Conv2D model')
+            plt.show()
+
 if __name__ == '__main__':
     trainer = Train(batch_size=16, val_batch_size=8, learning_rate=1e-3, start_new=True)
     trainer.train(num_epochs=50)
+
+    tester = Test(batch_size=8)
+    tester.test()
