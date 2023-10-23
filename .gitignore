@@ -167,5 +167,4 @@ data/validation/Negative/*
 data/validation/Positive/*
 data/test/Negative/*
 data/test/Positive/*
-data_small
 keras_models
