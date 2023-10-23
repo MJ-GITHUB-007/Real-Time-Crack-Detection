@@ -4,9 +4,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
-from torchvision import datasets, transforms
+from PIL import Image
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -364,9 +365,65 @@ class Test():
             plt.title('Conv2D model')
             plt.show()
 
-if __name__ == '__main__':
-    trainer = Train(batch_size=16, val_batch_size=8, learning_rate=1e-3, start_new=True)
-    trainer.train(num_epochs=50)
+class Predict():
+    def __init__(self) -> None:
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.curr_path = os.getcwd()
 
-    tester = Test(batch_size=8)
-    tester.test()
+        if torch.cuda.is_available():
+            print(f"\nUsing GPU : {torch.cuda.get_device_name(0)}")
+        else:
+            print(f"\nNo GPU available, using CPU.")
+
+        # Define your PyTorch model (make sure it's designed to run on the specified device)
+        self.model = Conv2d().to(self.device)
+        try:
+            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth')))
+        except:
+            raise Exception(f"Model conv2d_model failed to load")
+
+    def predict(self, image_path, display_image=True):
+        predict_transform = transforms.Compose([
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),
+        ])
+
+        # Load and preprocess the image
+        image = Image.open(image_path).convert('RGB')
+        input_tensor = predict_transform(image).unsqueeze(0).to(self.device)
+
+        # Perform prediction
+        with torch.no_grad():
+            output = self.model(input_tensor).cpu()
+            output = np.array(output)[0][0]
+            output = float(output)
+
+            if output > 0.5:
+                prediction = 'Negative'
+                confidence = str(round(output*100, 4)) + '%'
+            else:
+                prediction = 'Positive'
+                confidence = str(round(1 - output*100, 4)) + '%'
+        
+        # Print result
+        print(f"\nPredicted given image \"{image_path}\" as \"{prediction}\" with {confidence} confidence using Conv2D model.\n")
+
+        # Display the original image and the prediction
+        if display_image:
+            plt.imshow(image)
+            plt.title(f'Prediction: {prediction}\nConfidence: {confidence}', fontsize=16)
+            plt.xlabel(image_path, fontsize=13)
+            plt.xticks([])
+            plt.yticks([])  
+            plt.show()
+
+if __name__ == '__main__':
+    # trainer = Train(batch_size=16, val_batch_size=8, learning_rate=1e-3, start_new=True)
+    # trainer.train(num_epochs=50)
+
+    # tester = Test(batch_size=8)
+    # tester.test()
+
+    predictor = Predict()
+    image_path = '/home/mohammed/Desktop/Shivan/Real-Time-Crack-Detection/data/test/Negative/00254.jpg'
+    predictor.predict(image_path, display_image=True)
