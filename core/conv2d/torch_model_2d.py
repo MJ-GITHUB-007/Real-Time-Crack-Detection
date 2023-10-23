@@ -161,6 +161,7 @@ class Train():
         for epoch in range(num_epochs):
 
             # Use tqdm for progress bar during training
+            self.model.train()
             with tqdm(total=len(self.train_loader), bar_format=f'Epoch {epoch + 1}/{num_epochs} | Train      '+'|{bar:30}{r_bar}', unit=' batch(s)') as pbar:
                 total_loss = 0.0
                 correct_predictions = 0
