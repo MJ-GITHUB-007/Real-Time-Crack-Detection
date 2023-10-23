@@ -209,6 +209,7 @@ class Train():
                 pbar.close()
 
             # Validation
+            self.model.eval()
             with torch.no_grad():
                 # Use tqdm for progress bar during validation
                 with tqdm(total=len(self.val_loader), bar_format=f'        '+' '*len(str(epoch+1))+' '*len(str(num_epochs))+'| Validation '+'|{bar:30}{r_bar}', unit=' batch(s)') as pbar:
@@ -313,6 +314,7 @@ class Test():
         print(f"\nEvaluating conv2d_model model...\n")
 
         # Use tqdm for progress bar during testing
+        self.model.eval()
         with torch.no_grad():
             all_labels = []
             all_predictions = []
@@ -393,6 +395,7 @@ class Predict():
         input_tensor = predict_transform(image).unsqueeze(0).to(self.device)
 
         # Perform prediction
+        self.model.eval()
         with torch.no_grad():
             output = self.model(input_tensor).cpu()
             output = np.array(output)[0][0]
