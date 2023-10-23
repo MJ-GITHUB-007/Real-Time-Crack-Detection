@@ -165,8 +165,8 @@ class Train():
             transforms.ToTensor(),
         ])
 
-        self.train_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data', 'train'), transform=train_transform)
-        self.val_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data', 'validation'), transform=val_transform)
+        self.train_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data_small', 'train'), transform=train_transform)
+        self.val_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data_small', 'validation'), transform=val_transform)
 
         print(f"\nFound {len(self.train_dataset)} images for training")
         print(f"Found {len(self.val_dataset)} images for validating")
@@ -326,7 +326,7 @@ class Test():
             transforms.ToTensor(),
         ])
 
-        self.test_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data', 'test'), transform=test_transform)
+        self.test_dataset = datasets.ImageFolder(root=os.path.join(self.curr_path, 'data_small', 'test'), transform=test_transform)
 
         print(f"\nFound {len(self.test_dataset)} images for testing")
 
@@ -457,12 +457,12 @@ class Predict():
             plt.show()
 
 if __name__ == '__main__':
-    # trainer = Train(batch_size=16, val_batch_size=8, learning_rate=1e-3, start_new=True, liveplot=False)
-    # trainer.train(num_epochs=25)
+    trainer = Train(batch_size=16, val_batch_size=8, learning_rate=1e-3, start_new=True, liveplot=False)
+    trainer.train(num_epochs=25)
 
-    # tester = Test(batch_size=8)
-    # tester.test()
+    tester = Test(batch_size=8)
+    tester.test()
 
     predictor = Predict()
-    image_path = 'data/test/Negative/00254.jpg'
+    image_path = 'data/test/Positive/00010.jpg'
     predictor.predict(image_path, display_image=True)
