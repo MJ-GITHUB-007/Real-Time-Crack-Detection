@@ -18,8 +18,8 @@ except:
     raise Exception("Input number 1, 2 or 3")
 
 if script_choice == 1:
-    os.system('python run_train.py')
+    os.system('python core/drivers/run_train.py')
 elif script_choice == 2:
-    os.system('python run_test.py')
+    os.system('python core/drivers/run_test.py')
 elif script_choice == 3:
-    os.system('python run_predict.py')
+    os.system('python core/drivers/run_predict.py')

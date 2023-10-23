@@ -168,3 +168,4 @@ data/validation/Positive/*
 data/test/Negative/*
 data/test/Positive/*
 small_data
+keras_models
