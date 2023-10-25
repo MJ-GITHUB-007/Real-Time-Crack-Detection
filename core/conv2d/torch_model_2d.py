@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pretty_errors
 
-class Conv2d(nn.Module):
+class Conv2D(nn.Module):
     def __init__(self):
-        super(Conv2d, self).__init__()
+        super(Conv2D, self).__init__()
 
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
@@ -127,13 +127,13 @@ class Train():
         self.val_loader = DataLoader(self.val_dataset, batch_size=val_batch_size, shuffle=False, num_workers=1)
 
         # Define your PyTorch model (make sure it's designed to run on the specified device)
-        self.model = Conv2d().to(self.device)
+        self.model = Conv2D().to(self.device)
         if start_new:
             self.message = "new conv2d_model"
         else:
             self.message = "existing conv2d_model"
             try:
-                self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth')))
+                self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth'), map_location=self.device))
             except:
                 raise Exception(f"Model conv2d_model failed to load")
 
@@ -302,9 +302,9 @@ class Test():
         self.test_loader = DataLoader(self.test_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 
         # Define your PyTorch model (make sure it's designed to run on the specified device)
-        self.model = Conv2d().to(self.device)
+        self.model = Conv2D().to(self.device)
         try:
-            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth')))
+            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth'), map_location=self.device))
         except:
             raise Exception(f"Model conv2d_model failed to load")
 
@@ -379,9 +379,9 @@ class Predict():
             print(f"\nNo GPU available, using CPU.")
 
         # Define your PyTorch model (make sure it's designed to run on the specified device)
-        self.model = Conv2d().to(self.device)
+        self.model = Conv2D().to(self.device)
         try:
-            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth')))
+            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'conv2d_model.pth'), map_location=self.device))
         except:
             raise Exception(f"Model conv2d_model failed to load")
 

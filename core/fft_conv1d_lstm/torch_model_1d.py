@@ -187,7 +187,7 @@ class Train():
         else:
             self.message = "existing fft_conv1d_lstm_model"
             try:
-                self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'fft_conv1d_lstm_model.pth')))
+                self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'fft_conv1d_lstm_model.pth'), map_location=self.device))
             except:
                 raise Exception(f"Model fft_conv1d_lstm_model failed to load")
 
@@ -343,7 +343,7 @@ class Test():
         # Define your PyTorch model (make sure it's designed to run on the specified device)
         self.model = FFT_Conv1D_LSTM().to(self.device)
         try:
-            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'fft_conv1d_lstm_model.pth')))
+            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'fft_conv1d_lstm_model.pth'), map_location=self.device))
         except:
             raise Exception(f"Model fft_conv1d_lstm_model failed to load")
 
@@ -420,7 +420,7 @@ class Predict():
         # Define your PyTorch model (make sure it's designed to run on the specified device)
         self.model = FFT_Conv1D_LSTM().to(self.device)
         try:
-            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'fft_conv1d_lstm_model.pth')))
+            self.model.load_state_dict(torch.load(os.path.join(self.curr_path, 'models', 'fft_conv1d_lstm_model.pth'), map_location=self.device))
         except:
             raise Exception(f"Model fft_conv1d_lstm_model failed to load")
 
